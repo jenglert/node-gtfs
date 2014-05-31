@@ -15,13 +15,16 @@ var request = require('request')
         console.log('Download successful');
   	 
         var rs = fs.createReadStream(downloadDir + '/latest.zip').on('error', done);
+
+        // I expect the 'close' event to come through here.
         rs.pipe(unzip.Extract({ path: downloadDir }).on('close', done).on('error', done));
       }
 
       function done(err) {
         if (err){ 
-        	console.log("Some error:" + err);
+            console.log("Some error:" + err);
         } else { 
-			console.log("It is done!");
+            // This should print -- it does not.
+            console.log("It is done!");
         }
       }
