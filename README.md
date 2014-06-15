@@ -1,127 +1,162 @@
 #Node-GTFS
 
-node-GTFS loads transit data in [GTFS format](https://developers.google.com/transit/) from [GTFS Data Exchange](http://www.gtfs-data-exchange.com/), unzips it and stores it to a MongoDB database and provides some methods to query for agencies, routes, stops and times.  It also has spatial queries to find nearby stops, routes and agencies.
+node-GTFS loads transit data in [GTFS format](https://developers.google.com/transit/) from [GTFS Data Exchange](http://www.gtfs-data-exchange.com/), unzips it and stores it to a MongoDB database and provides some methods to query for agencies, routes, stops and times. 
+#Resources
+##agency
+Represents the business unit that operates this service.
+###Fields
+| Name | Type | Required? | Multi Valued? | Default | Description | 
+|  ---  |  ---  |  ---  |  ---  |  ---  |  ---  | 
+| name | string | No | No | - |  |
+| timezone | string | No | No | - |  |
+| url | string | No | No | - |  |
+###Operations
+####/agency
+####Parameters
+| Name | Type | Required? | Multi Valued? | Default | Description | 
+|  ---  |  ---  |  ---  |  ---  |  ---  |  ---  | 
+| limit | integer | No | No | 25 | The number of records to return |
+| offset | integer | No | No | - | Used to paginate. First page of results is 0. |
+####Responses
+| Code | Result | 
+|  ---  |  ---  | 
+| 200 | [agency] |
+##calendar
+Represents different time frames that have different schedules.
+###Fields
+| Name | Type | Required? | Multi Valued? | Default | Description | 
+|  ---  |  ---  |  ---  |  ---  |  ---  |  ---  | 
+| id | string | No | No | - | Text key uniquely identifying the time frame (SAt, SUN, WKDY, etc...). |
+| start_date | date-time-iso8601 | No | No | - | When the calendar starts (inclusive). |
+| end_date | date-time-iso8601 | No | No | - | When the calendar ends (exclusive). |
+| monday | boolean | No | No | - |  |
+| tuesday | boolean | No | No | - |  |
+| wednesday | boolean | No | No | - |  |
+| thursday | boolean | No | No | - |  |
+| friday | boolean | No | No | - |  |
+| saturday | boolean | No | No | - |  |
+| sunday | boolean | No | No | - |  |
+###Operations
+####/calendar
+####Parameters
+| Name | Type | Required? | Multi Valued? | Default | Description | 
+|  ---  |  ---  |  ---  |  ---  |  ---  |  ---  | 
+| limit | integer | No | No | 25 | The number of records to return |
+| offset | integer | No | No | - | Used to paginate. First page of results is 0. |
+####Responses
+| Code | Result | 
+|  ---  |  ---  | 
+| 200 | [calendar] |
 
-##Setup
+##route
+The path a service takes.
+###Fields
+| Name | Type | Required? | Multi Valued? | Default | Description | 
+|  ---  |  ---  |  ---  |  ---  |  ---  |  ---  | 
+| id | string | No | No | - |  |
+| agency | agency | No | No | - |  |
+| short_name | string | No | No | - |  |
+| long_name | string | No | No | - |  |
+| description | string | No | No | - |  |
+| type | integer | No | No | - | 0 - tram/lightrail, 1 - subway, 2 - rail, 3 - bus, 4 - ferry, 5 - cable car, 6 - gondola, 7 - funicular |
+###Operations
+####/route
+####Parameters
+| Name | Type | Required? | Multi Valued? | Default | Description | 
+|  ---  |  ---  |  ---  |  ---  |  ---  |  ---  | 
+| limit | integer | No | No | 25 | The number of records to return |
+| offset | integer | No | No | - | Used to paginate. First page of results is 0. |
+####Responses
+| Code | Result | 
+|  ---  |  ---  | 
+| 200 | [route] |
 
-`git clone git@github.com:brendannee/node-gtfs.git`
+##stop
+Represnets a stop (you know, where you can like get of and like get on).
+###Fields
+| Name | Type | Required? | Multi Valued? | Default | Description | 
+|  ---  |  ---  |  ---  |  ---  |  ---  |  ---  | 
+| id | string | No | No | - |  |
+| name | string | No | No | - |  |
+| description | string | No | No | - |  |
+| latitude | double | No | No | - |  |
+| longitude | double | No | No | - |  |
+###Operations
+####/stop
+####Parameters
+| Name | Type | Required? | Multi Valued? | Default | Description | 
+|  ---  |  ---  |  ---  |  ---  |  ---  |  ---  | 
+| limit | integer | No | No | 25 | The number of records to return |
+| offset | integer | No | No | - | Used to paginate. First page of results is 0. |
+####Responses
+| Code | Result | 
+|  ---  |  ---  | 
+| 200 | [stop] |
 
-`cd node-gtfs`
+##stop_time
+Represents a stop on a particular trip.
+###Fields
+| Name | Type | Required? | Multi Valued? | Default | Description | 
+|  ---  |  ---  |  ---  |  ---  |  ---  |  ---  | 
+| trip | trip | No | No | - |  |
+| arrival_time | date-time-iso8601 | No | No | - | The time that the vehicle arrives at the station. |
+| departure_time | date-time-iso8601 | No | No | - | The time that the vehicle leaves the station.  Often the same as the arrival time indicating it's a quick stop. |
+| stop | stop | No | No | - |  |
+| sequence | integer | No | No | - | The order of the stop for this particular trip. |
+###Operations
+####/stop_time
+####Parameters
+| Name | Type | Required? | Multi Valued? | Default | Description | 
+|  ---  |  ---  |  ---  |  ---  |  ---  |  ---  | 
+| trip_id | string | No | No | - | The id of the trip you are looking for stop times for. |
+####Responses
+| Code | Result | 
+|  ---  |  ---  | 
+| 200 | [stop_time] |
 
-`npm install`
+##trip
+The path the vehicle takes stopping for people along the way (unless it's full of course.  Then it might just keep going.  You never know.)
+###Fields
+| Name | Type | Required? | Multi Valued? | Default | Description | 
+|  ---  |  ---  |  ---  |  ---  |  ---  |  ---  | 
+| id | string | No | No | - |  |
+| route | route | No | No | - |  |
+| direction | integer | No | No | - | Sorta silly because it's make an assumption about where the 'center' is but: 1 - outbound, 2 - inbound |
+| calendar | calendar | No | No | - |  |
+###Operations
+####/trip
+####Parameters
+| Name | Type | Required? | Multi Valued? | Default | Description | 
+|  ---  |  ---  |  ---  |  ---  |  ---  |  ---  | 
+| route_id | string | No | No | - |  |
+| calendar_id | string | No | No | - |  |
+####Responses
+| Code | Result | 
+|  ---  |  ---  | 
+| 200 | [trip] |
 
-##Configuration for loading data
-
-Before you can use node-GTFS you must specify agencies to download from GTFS Data Exchange. You need the `dataexchange_id` for each agency you want to include from [GTFS Data Exchange](http://www.gtfs-data-exchange.com/) - it is in the URL of each individual transit agency's page.
-
-A full list of agencies is available via the [GTFS Data Exchange API](http://www.gtfs-data-exchange.com/api/agencies).
-
-For example, Austin Capital Metro is `capital-area-transit`, Washington DC is `wmata`.
-
-Add the list of agency keys you'd like to support to config.js as an array called `agencies`
-
-The mongodb URI is also configured in `config.js`. Default database URI is:
-`mongodb://localhost:27017/gtfs`
-
-###To load data
-
-    node ./scripts/download
-
-To keep schedules up to date, you might want to schedule this to occur once per day.
-
-##Example Application
-
-There is an example web app that creates some restful API endpoints and has a simple frontend for viewing transit data.  It is in examples/express.  You could load the example site with:
-
-    node ./examples/express/index.js
-
-##Endpoints
-
-###List agencies
-
-    /api/agencies
-
-###List agencies near a point
-
-    /api/agenciesNearby/:lat/:lon/:radius
-    
-    //Example
-    /api/agenciesNearby/37.73/-122.25/10
-`:radius` is optional and in miles.  Default: 25 miles
-Returns all agencies that serve the 100 nearest stops within the specified radius
-
-###List routes for an agency
-
-    /api/routes/:agency
-    
-    //Example
-    /api/routes/san-francisco-municipal-transportation-agency
-
-###List routes near a point
-
-    /api/routesNearby/:lat/:lon/:radius
-    
-    //Example
-    /api/routesNearby/37.73/-122.25/0.25
-`:radius` is optional and in miles.  Default: 1 mile
-Returns all routes that stop at the 100 nearest stops within the specified radius
-
-###List stops for a route
-
-    /api/stops/:agency/:route_id/:direction_id
-    
-    //Example
-    /api/stops/san-francisco-municipal-transportation-agency/34/1
-`:direction_id` is optional
-
-###List stops near a point
-
-    /api/stopsNearby/:lat/:lon/:radius
-    
-    //Example
-    /api/StopsNearby/37.73/-122.25/0.25
-`:radius` is optional and in miles.  Default: 1 mile
-Returns the 100 nearest stops within the specified radius
-
-###List stop times for a stop
-
-    /api/times/:agency/:route_id/:stop_id/:direction_id
-    
-    //Example
-    /api/times/san-francisco-municipal-transportation-agency/34/1256/0
-`:direction_id` is optional
-
-
-##Hosting the Example App with Heroku and MongoHQ
-
-A `Procfile` is already in the repo pointing to the example app in `examples/express`.
-
-Create app on Heroku
-
-    $ heroku apps:create YOURAPPNAME
-
-Add MongoHQ to your app
-
-    $ heroku addons:add mongohq:sandbox
-
-MONGOHQ creates a user, database and exports it as a MONGOHQ_URL environment variable.
-
-Add Heroku as a remote repo:
-
-    $ git remote add heroku git@heroku.com:YOUR_APP_NAME.git
-
-Push your app to Heroku
-
-    $ git push heroku master
-
-Execute the download script to populate the database with the agency data specified in config.js
-
-    $ heroku run node ./scripts/download
+##planned_trip
+A trip as planned for a particular user.  Effectiveliy, a set of steps to get from stop A to stop B.
+###Fields
+| Name | Type | Required? | Multi Valued? | Default | Description | 
+|  ---  |  ---  |  ---  |  ---  |  ---  |  ---  | 
+| steps | [planned_trip_step] | No | Yes | - |  |
+###Operations
+####/planned_trip
+####Parameters
+| Name | Type | Required? | Multi Valued? | Default | Description | 
+|  ---  |  ---  |  ---  |  ---  |  ---  |  ---  | 
+| departure_stop_id | string | No | No | - |  |
+| destination_stop_id | string | No | No | - |  |
+| departure_date_time | date-time-iso8601 | Yes | No | - | Defaults to right now if not provided. |
+####Responses
+| Code | Result | 
+|  ---  |  ---  | 
+| 200 | [planned_trip] |
 
 
-##Pulling in updated transit data
 
-Re-run the download script whenever you need to refresh the database. You may want to schedule this with a cronjob.  Heroku lets you do this with [scheduler](https://devcenter.heroku.com/articles/scheduler).
+
 
 ## License
 
