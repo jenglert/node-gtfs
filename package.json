@@ -21,6 +21,10 @@
     {
       "name": "Ethan Lo",
       "email": "ethan@ethanlo.com"
+    },
+    {
+      "name": "Jim Englert",
+      "email": "englert.james@gmail.com"
     }
   ],
   "dependencies": {
@@ -31,9 +35,10 @@
     , "async": "= 0.2.x"
     , "request": "= 2.x.x"
     , "underscore": "= 1.4.x"
-    , "unzip": "= 0.1.x"
+    , "decompress-zip": "= 0.0.x"
+    , "recursive-readdir": "> 0.0.1"
   },
   "keywords": ["transit","gtfs","transportation"],
-  "repository": "git://github.com/brendannee/node-gtfs",
+  "repository": "git://github.com/jenglert/node-gtfs",
   "main": "index"
 }

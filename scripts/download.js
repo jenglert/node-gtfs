@@ -4,9 +4,10 @@ var request = require('request')
   , path = require('path')
   , csv = require('csv')
   , async = require('async')
-  , unzip = require('unzip')
+  , DecompressZip = require('decompress-zip')
   , downloadDir = 'downloads'
   , Db = require('mongodb').Db
+  , _ = require('underscore')
   , q;
 
 //load config.js
@@ -145,21 +146,54 @@ Db.connect(config.mongo_url, {w: 1}, function(err, db) {
     
 
     function downloadFiles(cb) {
+      console.log("Downloading files...");
+
       //do download
       request(agency_url, processFile).pipe(fs.createWriteStream(downloadDir + '/latest.zip'));
 
       function processFile(e, response, body){
         if(response && response.statusCode != 200){ cb(new Error('Couldn\'t download files')); }
         console.log(agency_key + ': Download successful');
-  	
-        fs.createReadStream(downloadDir + '/latest.zip')
-          .pipe(unzip.Extract({ path: downloadDir }).on('close', cb))
-          .on('error', handleError);
+
+        var unzipper = new DecompressZip(downloadDir + '/latest.zip');
+
+        unzipper.on('error', handleError);
+
+        // It's a bit curious why I don't call cb directly.  Extract provides the function
+        // with a variable.  Node just assumes the first poarameter is an error, if present.
+        unzipper.on('extract', function(log) { cb(); });
+
+        unzipper.extract({ path: downloadDir });
       }
     }
 
+    function findSubdirectoryInDownloads(dir) { 
+      var result = _.find(fs.readdirSync(dir), function(line) {
+        var stat = fs.statSync(path.join(dir, line));
+
+        if (stat.isDirectory()) {
+          var recurseResult = findSubdirectoryInDownloads(path.join(dir, line));
+
+          if (recurseResult) {
+            return recurseResult;
+          }
+        }
+
+        if (stat.isFile() && 
+            line === 'agency.txt') {
+          return true;
+        } 
+      });
+
+      if (result) {
+        return result;
+      } else { 
+        return null;
+      }
+    }
 
     function removeDatabase(cb) {
+      console.log("Removing database...");
       //remove old db records based on agency_key
       async.forEach(GTFSFiles, function(GTFSFile, cb){
         db.collection(GTFSFile.collection, function(e, collection){
@@ -172,10 +206,13 @@ Db.connect(config.mongo_url, {w: 1}, function(err, db) {
 
 
     function importFiles(cb) {
+      console.log("Importing files...");
       //Loop through each file and add agency_key
       async.forEachSeries(GTFSFiles, function(GTFSFile, cb){
         if(GTFSFile){
-          var filepath = path.join(downloadDir, GTFSFile.fileNameBase + '.txt');
+          var downloadDirSubDir = findSubdirectoryInDownloads(downloadDir);
+
+          var filepath = path.join(downloadDir, downloadDirSubDir, GTFSFile.fileNameBase + '.txt');
           if (!fs.existsSync(filepath)) return cb();
           console.log(agency_key + ': ' + GTFSFile.fileNameBase + ' Importing data');
           db.collection(GTFSFile.collection, function(e, collection){
