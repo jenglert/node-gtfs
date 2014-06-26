@@ -1,11 +1,15 @@
 {
    "name":"GTFS",
    "description":"(General Transit Feed Specification) Provides information about public transport schedules.  Github: https://github.com/jenglert/node-gtfs",
-   "base_url":"http://notinprod",
+   "base_url":"http://notinprod/api",
    "models":{
       "agency":{
          "description":"Represents the business unit that operates this service.",
          "fields":[
+            {
+               "name":"key",
+               "type":"string"
+            },
             {
                "name":"name",
                "type":"string"
@@ -175,6 +179,7 @@
       },
       "planned_trip_step":{
          "description":"A step in a trip",
+         "path":"/planned_trip_step"
          "fields":[
            {
               "name":"departure_stop",
@@ -207,6 +212,7 @@
    "resources":[
       {
          "model":"agency",
+         "path":"/agency",
          "operations":[
             {
                "method":"GET",
@@ -238,6 +244,7 @@
       },
       {
          "model":"calendar",
+         "path":"/calendar",
          "operations":[
             {
                "method":"GET",
@@ -269,10 +276,11 @@
       },
       {
          "model":"route",
+         "path":"/route/:agency_key",
          "operations":[
             {
                "method":"GET",
-               "description":"Retrieves all routes.",
+               "description":"Retrieves all routes for the specified agency.",
                "parameters":[
                   {
                      "name":"limit",
@@ -324,27 +332,6 @@
                "responses":{
                   "200":{
                      "type":"[stop]"
-                  }
-               }
-            }
-         ]
-      },
-      {
-         "model":"stop_time",
-         "operations":[
-            {
-               "method":"GET",
-               "description":"Search all services. Results are always paginated.",
-               "parameters":[
-                  {
-                     "name":"trip_id",
-                     "type":"string",
-                     "description":"The id of the trip you are looking for stop times for."
-                  }
-               ],
-               "responses":{
-                  "200":{
-                     "type":"[stop_time]"
                   }
                }
             }
